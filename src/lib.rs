@@ -5,8 +5,8 @@ use regex::Regex;
 
 /// Token with offset mapping to original text.
 /// Used for NER and other tasks requiring exact alignment with raw input.
-/// Note: start and end are BYTE offsets (not character offsets) for efficiency.
-/// This matches how Rust string slicing works and is compatible with modern NLP tools.
+/// Note: start and end are CHARACTER offsets (not byte offsets) for Python compatibility.
+/// This ensures text[start:end] in Python correctly extracts the original token.
 #[pyclass]
 #[derive(Debug, Clone)]
 pub struct Token {
@@ -125,7 +125,7 @@ fn tokenize_with_offsets(text: &str) -> Vec<(String, usize, usize)> {
 /// This is the key function for NER and other research tasks where you need both
 /// normalized tokens AND their exact position in the original input.
 /// Returns a list of Token objects with { text: normalized_token, start, end }.
-/// Note: start/end are BYTE offsets (compatible with Rust slicing and modern NLP tools).
+/// Note: start/end are CHARACTER offsets (compatible with Python string slicing).
 #[pyfunction]
 fn tokenize_normalized(text: &str) -> Vec<Token> {
     let re = get_token_regex();
@@ -135,17 +135,21 @@ fn tokenize_normalized(text: &str) -> Vec<Token> {
         if let Some(mat) = caps.get(0) {
             let original_token = mat.as_str();
             
-            // Normalize the token text while keeping original byte offsets
+            // Normalize the token text while keeping original offsets
             let normalized_text = fast_normalize(original_token);
             
-            // Use byte offsets directly from regex (efficient and correct for Rust slicing)
+            // Convert byte offsets to character offsets for Python compatibility
             let byte_start = mat.start();
             let byte_end = mat.end();
             
+            let char_start = text[..byte_start].chars().count();
+            let char_len = text[byte_start..byte_end].chars().count();
+            let char_end = char_start + char_len;
+            
             results.push(Token {
                 text: normalized_text,
-                start: byte_start,
-                end: byte_end,
+                start: char_start,
+                end: char_end,
             });
         }
     }
@@ -262,7 +266,7 @@ mod tests {
     #[test]
     fn test_tokenize_normalized_preserves_offsets() {
         // Test case: "İstanbul'da" should normalize to "istanbul'da"
-        // but keep original byte offsets pointing to raw text
+        // but keep original character offsets pointing to raw text
         let text = "İstanbul'da güzel";
         let tokens = tokenize_normalized(text);
         
@@ -271,18 +275,19 @@ mod tests {
         // First token: "İstanbul'da" → "istanbul'da"
         assert_eq!(tokens[0].text, "istanbul'da");
         assert_eq!(tokens[0].start, 0);
-        // "İstanbul'da" = İ(2) + s(1) + t(1) + a(1) + n(1) + b(1) + u(1) + l(1) + '(1) + d(1) + a(1) = 12 bytes
-        assert_eq!(tokens[0].end, 12);
+        // "İstanbul'da" = 11 characters (İ, s, t, a, n, b, u, l, ', d, a)
+        assert_eq!(tokens[0].end, 11);
         
-        // Verify we can extract original from byte offsets
-        let original_token = &text[tokens[0].start..tokens[0].end];
+        // Verify we can extract original using character indices
+        // Note: In Rust, we need to use chars() for character-based slicing
+        let original_token: String = text.chars().skip(tokens[0].start).take(tokens[0].end - tokens[0].start).collect();
         assert_eq!(original_token, "İstanbul'da");
         
         // Second token: "güzel" → "güzel"
         assert_eq!(tokens[1].text, "güzel");
-        assert_eq!(tokens[1].start, 13); // After space (byte 12)
-        // "güzel" = g(1) + ü(2) + z(1) + e(1) + l(1) = 6 bytes
-        assert_eq!(tokens[1].end, 19);
+        assert_eq!(tokens[1].start, 12); // After space (character 11)
+        // "güzel" = 5 characters (g, ü, z, e, l)
+        assert_eq!(tokens[1].end, 17);
     }
 
     #[test]
@@ -296,56 +301,60 @@ mod tests {
         // "IŞIK" should normalize to "ışık"
         assert_eq!(tokens[0].text, "ışık");
         assert_eq!(tokens[0].start, 0);
-        // I=1, Ş=2, I=1, K=1 = 5 bytes
-        assert_eq!(tokens[0].end, 5);
+        // "IŞIK" = 4 characters (I, Ş, I, K)
+        assert_eq!(tokens[0].end, 4);
         
         // "İNSAN" should normalize to "insan"
         assert_eq!(tokens[1].text, "insan");
-        assert_eq!(tokens[1].start, 6); // After space
-        // İ=2, N=1, S=1, A=1, N=1 = 6 bytes
-        assert_eq!(tokens[1].end, 12);
+        assert_eq!(tokens[1].start, 5); // After space (character 4)
+        // "İNSAN" = 5 characters (İ, N, S, A, N)
+        assert_eq!(tokens[1].end, 10);
         
-        // Verify original extraction using byte offsets
-        assert_eq!(&text[tokens[0].start..tokens[0].end], "IŞIK");
-        assert_eq!(&text[tokens[1].start..tokens[1].end], "İNSAN");
+        // Verify original extraction using character offsets
+        let original_1: String = text.chars().skip(tokens[0].start).take(tokens[0].end - tokens[0].start).collect();
+        let original_2: String = text.chars().skip(tokens[1].start).take(tokens[1].end - tokens[1].start).collect();
+        assert_eq!(original_1, "IŞIK");
+        assert_eq!(original_2, "İNSAN");
     }
 
     #[test]
     fn test_offset_mapping_with_whitespace() {
-        // Whitespace should not be tokenized, byte offsets should skip it correctly
+        // Whitespace should not be tokenized, character offsets should skip it correctly
         let text = "  Merhaba   dünya  ";
         let tokens = tokenize_normalized(text);
         
         assert_eq!(tokens.len(), 2);
         assert_eq!(tokens[0].text, "merhaba");
         assert_eq!(tokens[0].start, 2); // Skips leading whitespace
-        assert_eq!(tokens[0].end, 9); // "Merhaba" = 7 bytes
+        assert_eq!(tokens[0].end, 9); // "Merhaba" = 7 characters
         
         assert_eq!(tokens[1].text, "dünya");
         assert_eq!(tokens[1].start, 12); // Accounts for whitespace between tokens
-        // "dünya" = d(1) + ü(2) + n(1) + y(1) + a(1) = 6 bytes
-        assert_eq!(tokens[1].end, 18);
+        // "dünya" = 5 characters (d, ü, n, y, a)
+        assert_eq!(tokens[1].end, 17);
     }
 
     #[test]
     fn test_ner_use_case() {
-        // Realistic NER scenario: extract entities with their byte positions
+        // Realistic NER scenario: extract entities with their character positions
         let text = "Ahmet İstanbul'a gitti.";
         let tokens = tokenize_normalized(text);
         
         // Should tokenize: ["ahmet", "istanbul'a", "gitti", "."]
         assert_eq!(tokens.len(), 4);
         
-        // Entity: "Ahmet" at byte position 0-5
+        // Entity: "Ahmet" at character position 0-5
         assert_eq!(tokens[0].text, "ahmet");
-        assert_eq!(&text[tokens[0].start..tokens[0].end], "Ahmet");
+        let entity_text: String = text.chars().skip(tokens[0].start).take(tokens[0].end - tokens[0].start).collect();
+        assert_eq!(entity_text, "Ahmet");
         
         // Entity: "İstanbul'a" 
         assert_eq!(tokens[1].text, "istanbul'a");
-        assert_eq!(&text[tokens[1].start..tokens[1].end], "İstanbul'a");
+        let location_text: String = text.chars().skip(tokens[1].start).take(tokens[1].end - tokens[1].start).collect();
+        assert_eq!(location_text, "İstanbul'a");
         
         // Verify we can label entities with original case preserved
-        let entity_label = format!("{} (PER)", &text[tokens[0].start..tokens[0].end]);
+        let entity_label = format!("{} (PER)", entity_text);
         assert_eq!(entity_label, "Ahmet (PER)");
     }
 }
