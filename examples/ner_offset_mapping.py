@@ -1,123 +1,80 @@
-"""Named Entity Recognition (NER) with Offset Mapping.
+"""
+Named Entity Recognition (NER) with Offset Mapping Example
 
-This example demonstrates how to use tokenize_normalized() for NER tasks,
-where you need normalized tokens but also need to know their exact position
-in the original text for labeling.
+This example demonstrates how to use Durak's offset mapping feature
+to perform NER while preserving the exact positions in the original text.
 """
 
-from durak import tokenize_normalized
+from durak import tokenize_normalized, Token
 
-
-def demonstrate_ner_workflow():
-    """Show a realistic NER workflow using Durak's offset mapping."""
+def extract_entities_with_positions(text: str) -> list[tuple[str, int, int, str]]:
+    """
+    Extract entities from text and return their original positions.
     
-    # Sample text with entities
-    text = "Ahmet İstanbul'a gitti. Ayşe Ankara'dan geldi."
-    
-    print("Original text:")
-    print(f"  {text!r}\n")
-    
-    # Tokenize with normalization and offset mapping
+    Returns:
+        List of (entity_text, start, end, label) tuples
+    """
+    # Tokenize with offset mapping
     tokens = tokenize_normalized(text)
     
-    print("Normalized tokens with offsets:")
-    print("  Token            Original         Offsets")
-    print("  " + "-" * 52)
-    
+    # Mock entity detection (in production, use a NER model)
+    entities = []
     for token in tokens:
-        original = text[token.start:token.end]
-        print(f"  {token.text:15} → {original:15} [{token.start}:{token.end}]")
-    
-    print("\nNER Labeling Example:")
-    print("  Let's say we detect 'ahmet' and 'ayşe' as persons (PER),")
-    print("  and 'istanbul'a' and 'ankara'dan' as locations (LOC):\n")
-    
-    # Simulated NER predictions (in practice, this comes from a model)
-    # Format: (token_index, entity_type)
-    predictions = [
-        (0, "PER"),      # ahmet
-        (1, "LOC"),      # istanbul'a
-        (5, "PER"),      # ayşe
-        (6, "LOC"),      # ankara'dan
-    ]
-    
-    # Apply labels using original text positions
-    for token_idx, entity_type in predictions:
-        token = tokens[token_idx]
+        # Extract original text using character offsets
         original_text = text[token.start:token.end]
-        print(f"  {original_text:15} ({entity_type}) at position [{token.start}:{token.end}]")
-    
-    print("\n" + "="*60)
-    print("Key Benefits for NER:")
-    print("  1. Tokens are normalized for model consistency")
-    print("     ('İstanbul' → 'istanbul', 'AHMET' → 'ahmet')")
-    print("  2. Offsets point to ORIGINAL text for labeling")
-    print("     (preserves proper nouns' original case)")
-    print("  3. Compatible with Transformers/spaCy/Flair pipelines")
-    print("="*60)
-
-
-def huggingface_integration_example():
-    """Show how to prepare data for Hugging Face Transformers."""
-    
-    print("\n\nHugging Face Transformers Integration:\n")
-    
-    text = "Fatih Burak Karagöz İstanbul Teknik Üniversitesi'nde çalışıyor."
-    tokens = tokenize_normalized(text)
-    
-    print(f"Original: {text}\n")
-    
-    # Format compatible with datasets library
-    token_list = []
-    ner_tags = []  # Placeholder - would come from annotation
-    
-    for token in tokens:
-        if token.text.strip():  # Skip pure punctuation for this example
-            token_list.append(token.text)
-            # In real scenario, you'd map these to BIO tags
-            ner_tags.append("O")  # Outside entity (placeholder)
-    
-    print("Token list for model input:")
-    print(f"  {token_list}\n")
-    
-    print("Creating dataset entry:")
-    dataset_entry = {
-        "tokens": token_list,
-        "ner_tags": ner_tags,
-        "original_text": text,
-        "offsets": [(t.start, t.end) for t in tokens if t.text.strip()],
-    }
-    
-    for key, value in dataset_entry.items():
-        if key == "offsets":
-            print(f"  {key}: (showing first 3) {value[:3]}...")
-        else:
-            print(f"  {key}: {value if len(str(value)) < 60 else str(value)[:57] + '...'}")
-    
-    print("\n✓ Ready to feed into Hugging Face's TokenClassification pipeline!")
-
-
-def turkish_specific_edge_cases():
-    """Demonstrate Turkish-specific tokenization challenges."""
-    
-    print("\n\nTurkish-Specific Edge Cases:\n")
-    
-    test_cases = [
-        ("İyi", "iyi", "Dotted İ → lowercase i"),
-        ("IŞIK", "ışık", "Undotted I → lowercase ı"),
-        ("gül'ü", "gül'ü", "Apostrophe in suffix"),
-        ("İstanbul'un", "istanbul'un", "Capital İ + apostrophe"),
-    ]
-    
-    for original, expected_normalized, description in test_cases:
-        tokens = tokenize_normalized(original)
-        actual_normalized = tokens[0].text if tokens else ""
-        status = "✓" if actual_normalized == expected_normalized else "✗"
         
-        print(f"  {status} {description:30} | {original:15} → {actual_normalized}")
+        # Simple heuristic: capitalized words might be entities
+        if original_text and original_text[0].isupper():
+            entities.append((original_text, token.start, token.end, "ENTITY"))
+    
+    return entities
 
+def main():
+    # Example 1: Basic NER with Turkish text
+    text1 = "Ahmet İstanbul'a gitti."
+    print(f"Text: {text1}")
+    print("Entities found:")
+    
+    entities = extract_entities_with_positions(text1)
+    for entity, start, end, label in entities:
+        print(f"  {label}: '{entity}' at position [{start}:{end}]")
+        # Verify we can extract it correctly
+        assert text1[start:end] == entity
+    
+    print()
+    
+    # Example 2: Handling Turkish I/İ normalization
+    text2 = "IŞIK İNSAN projesi"
+    print(f"Text: {text2}")
+    print("Tokens with offsets:")
+    
+    tokens = tokenize_normalized(text2)
+    for token in tokens:
+        original = text2[token.start:token.end]
+        print(f"  Normalized: '{token.text}' | Original: '{original}' | Position: [{token.start}:{token.end}]")
+    
+    print()
+    
+    # Example 3: Real-world NER scenario
+    text3 = "Fatih Burak Karagöz, Ankara Üniversitesi'nde çalışıyor."
+    print(f"Text: {text3}")
+    print("Token analysis:")
+    
+    tokens = tokenize_normalized(text3)
+    for token in tokens:
+        original = text3[token.start:token.end]
+        is_capitalized = original and original[0].isupper()
+        print(f"  '{token.text}' -> '{original}' [{token.start}:{token.end}] "
+              f"{'(POTENTIAL ENTITY)' if is_capitalized else ''}")
+    
+    print()
+    
+    # Example 4: Integration with transformers/BERT
+    print("Integration with transformers:")
+    print("You can now pass these offsets directly to BERT/Transformers:")
+    print("  tokens = [token.text for token in tokenize_normalized(text)]")
+    print("  offsets = [(token.start, token.end) for token in tokenize_normalized(text)]")
+    print("  # Use offsets to align BERT predictions with original text positions")
 
 if __name__ == "__main__":
-    demonstrate_ner_workflow()
-    huggingface_integration_example()
-    turkish_specific_edge_cases()
+    main()
