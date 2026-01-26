@@ -103,6 +103,18 @@ from durak import _durak_core
 normalized = _durak_core.fast_normalize("İSTANBUL")  # "istanbul"
 tokens = _durak_core.tokenize_with_offsets("Merhaba dünya!")
 
+# NER-ready tokenization with offset mapping (Issue #7)
+text = "Ahmet İstanbul'a gitti."
+tokens = _durak_core.tokenize_normalized(text)
+for token in tokens:
+    original = text[token.start:token.end].encode('utf-8')
+    print(f"{token.text:15} → {original.decode('utf-8'):15} [{token.start}:{token.end}]")
+# Output:
+# ahmet           → Ahmet           [0:5]
+# istanbul'a      → İstanbul'a      [6:17]
+# gitti           → gitti           [18:23]
+# .               → .               [23:24]
+
 # Embedded resources (no file I/O!)
 stopwords = _durak_core.get_stopwords_base()  # 100-1000x faster loading
 suffixes = _durak_core.get_detached_suffixes()
