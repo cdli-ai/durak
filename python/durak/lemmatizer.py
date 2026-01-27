@@ -101,11 +101,11 @@ class Lemmatizer:
             lookup_start = perf_counter() if self.collect_metrics else None
             lemma = lookup_lemma(word)
             
-            if self._metrics is not None:
+            if self._metrics is not None and lookup_start is not None:
                 self._metrics.lookup_time += perf_counter() - lookup_start
             
             if lemma is not None:
-                if self._metrics is not None:
+                if self._metrics is not None and start_time is not None:
                     self._metrics.lookup_hits += 1
                     self._metrics.total_calls += 1
                     self._metrics.total_time += perf_counter() - start_time
@@ -115,7 +115,7 @@ class Lemmatizer:
                 self._metrics.lookup_misses += 1
             
             if self.strategy == "lookup":
-                if self._metrics is not None:
+                if self._metrics is not None and start_time is not None:
                     self._metrics.total_calls += 1
                     self._metrics.total_time += perf_counter() - start_time
                 return word  # Return as-is if not found
@@ -125,7 +125,7 @@ class Lemmatizer:
             heuristic_start = perf_counter() if self.collect_metrics else None
             result = strip_suffixes(word)
             
-            if self._metrics is not None:
+            if self._metrics is not None and heuristic_start is not None and start_time is not None:
                 self._metrics.heuristic_time += perf_counter() - heuristic_start
                 self._metrics.heuristic_calls += 1
                 self._metrics.total_calls += 1
@@ -156,6 +156,7 @@ class Lemmatizer:
                 "Metrics collection not enabled. "
                 "Initialize with collect_metrics=True."
             )
+        assert self._metrics is not None  # Always true when collect_metrics is True
         return self._metrics
     
     def reset_metrics(self) -> None:
