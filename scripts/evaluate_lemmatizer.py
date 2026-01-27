@@ -116,7 +116,10 @@ def print_results(results: Dict, show_errors: bool = False):
         print("Errors:")
         print(f"{'-'*60}")
         for err in results['errors'][:10]:  # Show first 10 errors
-            print(f"  {err['word']:<15} → {err['predicted']:<10} (expected: {err['expected']})")
+            word = err['word']
+            pred = err['predicted']
+            exp = err['expected']
+            print(f"  {word:<15} → {pred:<10} (expected: {exp})")
         
         if len(results['errors']) > 10:
             print(f"  ... and {len(results['errors']) - 10} more errors")
@@ -194,7 +197,10 @@ def check_regression(results: list[Dict], baseline_path: Path, threshold: float 
         diff = current_acc - baseline_acc
         
         status = "✅" if diff >= -threshold else "❌"
-        print(f"{status} {strategy:<12} {baseline_acc:.1%} → {current_acc:.1%} ({diff:+.1%})")
+        base_pct = f"{baseline_acc:.1%}"
+        curr_pct = f"{current_acc:.1%}"
+        diff_pct = f"{diff:+.1%}"
+        print(f"{status} {strategy:<12} {base_pct} → {curr_pct} ({diff_pct})")
         
         if diff < -threshold:
             regression_found = True
@@ -226,7 +232,7 @@ Examples:
         "--test-set",
         type=Path,
         default=Path("resources/tr/lemmas/eval/gold_standard.tsv"),
-        help="Path to gold-standard test set (default: resources/tr/lemmas/eval/gold_standard.tsv)"
+        help="Path to gold-standard test set (TSV format)"
     )
     
     parser.add_argument(
