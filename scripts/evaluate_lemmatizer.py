@@ -6,8 +6,9 @@ Evaluates precision, recall, and F1 scores for different lemmatization strategie
 against gold-standard test sets.
 
 Usage:
-    python scripts/evaluate_lemmatizer.py [--test-set PATH] [--strategy lookup|heuristic|hybrid]
-    python scripts/evaluate_lemmatizer.py --all  # Compare all strategies
+    python scripts/evaluate_lemmatizer.py [--test-set PATH] \\
+        [--strategy lookup|heuristic|hybrid]
+    python scripts/evaluate_lemmatizer.py --all  # Compare all
 """
 
 import argparse
@@ -118,7 +119,8 @@ def print_results(results: Dict, show_errors: bool = False):
         print("Errors:")
         print(f"{'-'*60}")
         for err in results['errors'][:10]:  # Show first 10 errors
-            print(f"  {err['word']:<15} → {err['predicted']:<10} (expected: {err['expected']})")
+            exp = err['expected']
+            print(f"  {err['word']:<15} → {err['predicted']:<10} (expected: {exp})")
         
         if len(results['errors']) > 10:
             print(f"  ... and {len(results['errors']) - 10} more errors")
@@ -196,7 +198,8 @@ def check_regression(results: List[Dict], baseline_path: Path, threshold: float 
         diff = current_acc - baseline_acc
         
         status = "✅" if diff >= -threshold else "❌"
-        print(f"{status} {strategy:<12} {baseline_acc:.1%} → {current_acc:.1%} ({diff:+.1%})")
+        msg = f"{status} {strategy:<12} {baseline_acc:.1%} → {current_acc:.1%}"
+        print(f"{msg} ({diff:+.1%})")
         
         if diff < -threshold:
             regression_found = True
@@ -228,7 +231,8 @@ Examples:
         "--test-set",
         type=Path,
         default=Path("resources/tr/lemmas/eval/gold_standard.tsv"),
-        help="Path to gold-standard test set (default: resources/tr/lemmas/eval/gold_standard.tsv)"
+        help="Path to gold-standard test set "
+             "(default: resources/tr/lemmas/eval/gold_standard.tsv)"
     )
     
     parser.add_argument(
