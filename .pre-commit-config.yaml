@@ -1,0 +1,50 @@
+# Pre-commit hooks for automated code quality checks
+# Run: pre-commit install  (one-time setup)
+# Run: pre-commit run --all-files  (manual run)
+repos:
+  # Black (code formatting)
+  - repo: https://github.com/psf/black
+    rev: 24.10.0
+    hooks:
+      - id: black
+        language_version: python3.12
+        files: ^(python|tests)/
+
+  # Ruff (linting + import sorting)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.4
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+        files: ^(python|tests)/
+
+  # MyPy (type checking)
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.11.0
+    hooks:
+      - id: mypy
+        args: [python]
+        additional_dependencies: [types-all]
+        files: ^(python|tests)/
+
+  # General checks from pre-commit-hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: check-merge-conflict
+      - id: check-added-large-files
+      - id: debug-statements
+
+  # Rust formatting and linting
+  - repo: https://github.com/doublify/pre-commit-rust
+    rev: v1.0
+    hooks:
+      - id: fmt
+        args: [--, --check]
+      - id: clippy
+        args: [--, -D, warnings]
+        files: ^src/

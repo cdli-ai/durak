@@ -23,6 +23,29 @@ Durak follows the standards in [`CODE_OF_CONDUCT.md`](CODE_OF_CONDUCT.md). By pa
    pytest
    ```
 
+## Setup Pre-commit Hooks
+
+Install automated quality checks that run before each commit:
+
+```bash
+pip install pre-commit
+pre-commit install
+```
+
+Hooks will run automatically on `git commit`. To run them manually on all files:
+
+```bash
+pre-commit run --all-files
+```
+
+The pre-commit hooks include:
+- **Black**: Python code formatting
+- **Ruff**: Linting and import sorting (with auto-fix)
+- **MyPy**: Type checking
+- **Rust fmt**: Rust code formatting
+- **Clippy**: Rust linting
+- **General checks**: Trailing whitespace, merge conflicts, YAML/TOML validation
+
 ## Development Workflow
 
 - Keep changes focused and atomic.
