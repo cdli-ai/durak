@@ -72,7 +72,14 @@ class Normalizer:
 
             # lowercase=True, handle_turkish_i=False
             # Standard lowercase without Turkish I handling
-            return text.lower()
+            # Need to handle İ manually to avoid combining characters
+            result = []
+            for c in text:
+                if c == 'İ':
+                    result.append('i')
+                else:
+                    result.append(c.lower())
+            return ''.join(result)
 
         except RustExtensionError:
             raise  # Re-raise as-is
