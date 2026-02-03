@@ -91,6 +91,25 @@ def test_cli_lemmatize_command():
     assert "ev" in result.stdout
 
 
+def test_cli_lemmatize_with_metrics_json():
+    """Test lemmatize command with metrics and JSON output format."""
+    result = subprocess.run(
+        [sys.executable, "-m", "durak.cli", "lemmatize", "--metrics", "--format", "json", "kitaplar", "evler"],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+    )
+    assert result.returncode == 0
+    data = json.loads(result.stdout)
+    assert "tokens" in data
+    assert "lemmas" in data
+    assert "metrics" in data
+    # Verify metrics is a dict/object, not a string
+    assert isinstance(data["metrics"], dict)
+    assert "total_calls" in data["metrics"]
+    assert data["metrics"]["total_calls"] == 2
+
+
 def test_cli_stopwords_command():
     """Test stopwords command via subprocess."""
     result = subprocess.run(

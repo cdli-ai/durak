@@ -239,11 +239,12 @@ def lemmatize(tokens: tuple[str, ...], strategy: str, metrics: bool, **kwargs: A
     # Show metrics if requested
     if metrics:
         if output_format != "text":
-            metrics_json = lemmatizer_obj.get_metrics()
+            metrics_obj = lemmatizer_obj.get_metrics()
+            metrics_json = json.dumps(metrics_obj.to_dict(), ensure_ascii=False)
             if output_format == "json":
                 result = result.rstrip("}") + f', "metrics": {metrics_json}}}'
             else:  # jsonl
-                result += "\n" + json.dumps({"metrics": metrics_json}, ensure_ascii=False)
+                result += "\n" + json.dumps({"metrics": metrics_obj.to_dict()}, ensure_ascii=False)
         else:
             click.echo("\n" + str(lemmatizer_obj.get_metrics()))
 
