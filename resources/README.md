@@ -198,4 +198,4 @@ When contributing new resources:
 
 ## Questions?
 
-See [CONTRIBUTING.md](../CONTRIBUTING.md) for contribution guidelines or open an issue at [github.com/fbkaragoz/durak/issues](https://github.com/fbkaragoz/durak/issues).
+See [CONTRIBUTING.md](../CONTRIBUTING.md) for contribution guidelines or open an issue at [github.com/cdli-ai/durak/issues](https://github.com/cdli-ai/durak/issues).

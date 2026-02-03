@@ -392,4 +392,4 @@ def process_user_text(text: str) -> list[str]:
 
 ---
 
-**Questions or suggestions?** Open an issue at [github.com/fbkaragoz/durak/issues](https://github.com/fbkaragoz/durak/issues)
+**Questions or suggestions?** Open an issue at [github.com/cdli-ai/durak/issues](https://github.com/cdli-ai/durak/issues)
