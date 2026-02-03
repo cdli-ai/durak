@@ -6,7 +6,7 @@ use pyo3::prelude::*;
 use std::collections::HashMap;
 use std::sync::OnceLock;
 use regex::Regex;
-// will be keeping for backward compatability
+// will be keeping for backward compatibility
 use serde::{Deserialize, Serialize};
 use root_validator::RootValidator;
 
