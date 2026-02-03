@@ -142,6 +142,11 @@ try:
     tokenize_with_offsets = _durak_core.tokenize_with_offsets
     tokenize_with_normalized_offsets = _durak_core.tokenize_with_normalized_offsets
 except ImportError:
+    def tokenize_with_offsets(text: str) -> list[tuple[str, int, int]]:
+        raise RustExtensionError(
+            "Rust extension not installed. Run: maturin develop"
+        )
+
     def tokenize_with_normalized_offsets(text: str) -> list[tuple[str, int, int]]:
         raise RustExtensionError(
             "Rust extension not installed. Run: maturin develop"
