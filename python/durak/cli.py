@@ -434,15 +434,10 @@ def normalize(input_file: str, output: str | None, turkish_i: bool, **kwargs: An
         text = Path(input_file).read_text(encoding="utf-8")
 
     # Normalize
-    if turkish_i:
-        from durak.normalizer import Normalizer
+    from durak.normalizer import Normalizer
 
-        normalizer = Normalizer(lowercase=True, handle_turkish_i=True)
-        result = normalizer(text)
-    else:
-        from durak.cleaning import normalize_case
-
-        result = normalize_case(text, mode="lower")
+    normalizer = Normalizer(lowercase=True, handle_turkish_i=turkish_i)
+    result = normalizer(text)
 
     # Format output
     output_format = kwargs.get("format", "text")
