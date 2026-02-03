@@ -6,7 +6,7 @@ for Turkish text processing.
 
 from __future__ import annotations
 
-def fast_normalize(text: str) -> str:
+def fast_normalize(text: str, lowercase: bool, handle_turkish_i: bool) -> str:
     """Fast normalization for Turkish text.
 
     Handles Turkish-specific I/ı and İ/i conversion correctly and lowercases the rest.
@@ -14,14 +14,16 @@ def fast_normalize(text: str) -> str:
 
     Args:
         text: The text to normalize
+        lowercase: If True, convert text to lowercase
+        handle_turkish_i: If True, handle Turkish I/ı conversion (İ→i, I→ı)
 
     Returns:
-        Normalized lowercase text with correct Turkish character handling
+        Normalized text with correct Turkish character handling
 
     Examples:
-        >>> fast_normalize("ISTANBUL")
+        >>> fast_normalize("ISTANBUL", True, True)
         'istanbul'
-        >>> fast_normalize("İSTANBUL")
+        >>> fast_normalize("İSTANBUL", True, True)
         'istanbul'
     """
     ...
@@ -53,6 +55,41 @@ def tokenize_with_offsets(text: str) -> list[tuple[str, int, int]]:
         [('Merhaba', 0, 7), ('dünya', 8, 13), ('!', 13, 14)]
         >>> tokenize_with_offsets("ankara'da")
         [('ankara', 0, 6), ("'", 6, 7), ('da', 7, 9)]
+    """
+    ...
+
+def tokenize_with_normalized_offsets(text: str) -> list[tuple[str, int, int]]:
+    """Tokenize text and return normalized tokens with offsets to original text.
+
+    This is the NER-friendly version: tokens are normalized (lowercased with Turkish
+    I handling) but offsets still point to the original, unnormalized input text.
+    Offsets are character indices (not byte indices) for Python compatibility.
+
+    This function is useful for:
+    - Named Entity Recognition (NER) pipelines
+    - Span-based annotation tasks
+    - Any application where you need to map normalized tokens back to original text
+
+    Handles:
+    - URLs (http://, https://, www.)
+    - Emoticons (:), ;), :D, etc.)
+    - Apostrophes (Turkish possessive/case markers)
+    - Numbers (including decimals and ranges)
+    - Hyphenated words
+    - Punctuation
+    - Turkish normalization (İ→i, I→ı) on tokens
+
+    Args:
+        text: The text to tokenize
+
+    Returns:
+        List of (normalized_token, start_index, end_index) tuples where indices
+        are character positions in the original text
+
+    Examples:
+        >>> tokenize_with_normalized_offsets("İstanbul'a gittim")
+        [('istanbul\'a', 0, 10), ('gittim', 11, 17)]
+        >>> # Note: tokens are lowercased but offsets point to "İstanbul'a" in original
     """
     ...
 
@@ -232,6 +269,7 @@ def get_stopwords_social_media() -> list[str]:
 __all__ = [
     "fast_normalize",
     "tokenize_with_offsets",
+    "tokenize_with_normalized_offsets",
     "lookup_lemma",
     "strip_suffixes",
     "strip_suffixes_validated",
@@ -240,8 +278,6 @@ __all__ = [
     "get_stopwords_base",
     "get_stopwords_metadata",
     "get_stopwords_social_media",
-    "get_build_info",
-    "get_resource_info",
     "get_build_info",
     "get_resource_info",
 ]
