@@ -175,10 +175,10 @@ stopwords = _durak_core.get_stopwords_base()  # Fast!
 - Introduced regex-based tokenizer, sentence splitting, and corpus validator integration.
 - Provided development tooling (pytest, ruff, mypy configs) and packaging metadata for TestPyPI/PyPI releases.
 
-[Unreleased]: https://github.com/fbkaragoz/durak/compare/v0.4.0...HEAD
-[0.4.0]: https://github.com/fbkaragoz/durak/compare/v0.3.0...v0.4.0
-[0.3.0]: https://github.com/fbkaragoz/durak/compare/v0.2.4...v0.3.0
-[0.2.4]: https://github.com/fbkaragoz/durak/compare/v0.2.3...v0.2.4
-[0.2.3]: https://github.com/fbkaragoz/durak/compare/v0.2.2...v0.2.3
-[0.2.0]: https://github.com/fbkaragoz/durak/compare/v0.1.0...v0.2.0
-[0.1.0]: https://github.com/fbkaragoz/durak/releases/tag/v0.1.0
+[Unreleased]: https://github.com/cdli-ai/durak/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/cdli-ai/durak/compare/v0.3.0...v0.4.0
+[0.3.0]: https://github.com/cdli-ai/durak/compare/v0.2.4...v0.3.0
+[0.2.4]: https://github.com/cdli-ai/durak/compare/v0.2.3...v0.2.4
+[0.2.3]: https://github.com/cdli-ai/durak/compare/v0.2.2...v0.2.3
+[0.2.0]: https://github.com/cdli-ai/durak/compare/v0.1.0...v0.2.0
+[0.1.0]: https://github.com/cdli-ai/durak/releases/tag/v0.1.0

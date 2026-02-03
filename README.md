@@ -2,12 +2,12 @@
 
 [![PyPI](https://img.shields.io/pypi/v/durak-nlp.svg)](https://pypi.org/project/durak-nlp/)
 [![Python Versions](https://img.shields.io/pypi/pyversions/durak-nlp.svg)](https://pypi.org/project/durak-nlp/)
-[![Tests](https://github.com/fbkaragoz/durak/actions/workflows/tests.yml/badge.svg)](https://github.com/fbkaragoz/durak/actions/workflows/tests.yml)
+[![Tests](https://github.com/cdli-ai/durak/actions/workflows/tests.yml/badge.svg)](https://github.com/cdli-ai/durak/actions/workflows/tests.yml)
 [![License](https://img.shields.io/badge/license-Durak%201.2-blue.svg)](LICENSE)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17477942.svg)](https://doi.org/10.5281/zenodo.17477942)
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/fbkaragoz/durak/main/docs/durak.svg" alt="Durak logo" width="200" />
+  <img src="https://raw.githubusercontent.com/cdli-ai/durak/main/docs/durak.svg" alt="Durak logo" width="200" />
 </p>
 
 **Durak** is a high-performance Turkish NLP toolkit built on a **"Rust Core, Python Interface"** architecture. Heavy lifting (normalization, tokenization, lemmatization) runs in compiled Rust, releasing the GIL for true parallelism, while providing a flexible, PyTorch-like API for Python researchers.
@@ -194,7 +194,7 @@ lemmatizer("kitaplardan")  # Only strips if root ≥3 chars and valid
 
 ```bash
 # Clone the repository
-git clone https://github.com/fbkaragoz/durak.git
+git clone https://github.com/cdli-ai/durak.git
 cd durak
 
 # Create virtual environment
@@ -259,7 +259,7 @@ durak/
 - **Contributing**: [CONTRIBUTING.md](CONTRIBUTING.md)
 - **Security**: [SECURITY.md](SECURITY.md)
 - **Citation**: [CITATION.cff](CITATION.cff)
-- **Issues**: [GitHub Issues](https://github.com/fbkaragoz/durak/issues)
+- **Issues**: [GitHub Issues](https://github.com/cdli-ai/durak/issues)
 
 **Topics**: `turkish-nlp`, `nlp`, `rust`, `pyo3`, `maturin`, `tokenization`, `lemmatization`, `text-processing`
 
@@ -281,4 +281,4 @@ Durak is distributed under the [Durak License v1.2](LICENSE). Commercial or inst
 ---
 
 **Homepage**: [karagoz.io](https://karagoz.io)
-**Repository**: [github.com/fbkaragoz/durak](https://github.com/fbkaragoz/durak)
+**Repository**: [github.com/cdli-ai/durak](https://github.com/cdli-ai/durak)

@@ -466,7 +466,7 @@ def normalize(input_file: str, output: str | None, turkish_i: bool, **kwargs: An
 def version() -> None:
     """Show version information."""
     click.echo("Durak v0.4.0 - Turkish NLP Toolkit")
-    click.echo("https://github.com/fbkaragoz/durak")
+    click.echo("https://github.com/cdli-ai/durak")
 
 
 def main() -> None:
