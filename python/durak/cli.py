@@ -328,8 +328,35 @@ def clean(input_file: str, output: str | None, **kwargs: Any) -> None:
         text = Path(input_file).read_text(encoding="utf-8")
 
     # Clean text with options
+    from durak.cleaning import (
+        DEFAULT_CLEANING_STEPS,
+        collapse_whitespace,
+        normalize_unicode,
+        remove_mentions_hashtags,
+        remove_repeated_chars,
+        remove_urls,
+        strip_html,
+    )
+    from functools import partial
+
     emoji_mode = "keep" if kwargs["keep_emoji"] else "remove"
-    cleaned = clean_text(text, emoji_mode=emoji_mode, lowercase=kwargs["lowercase"])
+
+    # Build cleaning steps based on lowercase option
+    if kwargs["lowercase"]:
+        # Use default steps (includes lowercase)
+        steps = None
+    else:
+        # Build custom steps without lowercase
+        steps = (
+            normalize_unicode,
+            strip_html,
+            remove_urls,
+            remove_mentions_hashtags,
+            partial(remove_repeated_chars, max_repeats=2),
+            collapse_whitespace,
+        )
+
+    cleaned = clean_text(text, steps=steps, emoji_mode=emoji_mode)
 
     # Format output
     output_format = kwargs.get("format", "text")
