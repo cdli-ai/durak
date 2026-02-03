@@ -149,6 +149,26 @@ mod tests {
     }
 
     #[test]
+    fn test_vowel_class_helpers() {
+        // Test is_back() and is_rounded() helper methods
+        assert!(VowelClass::FrontUnrounded.is_front());
+        assert!(!VowelClass::FrontUnrounded.is_back());
+        assert!(!VowelClass::FrontUnrounded.is_rounded());
+
+        assert!(VowelClass::FrontRounded.is_front());
+        assert!(!VowelClass::FrontRounded.is_back());
+        assert!(VowelClass::FrontRounded.is_rounded());
+
+        assert!(!VowelClass::BackUnrounded.is_front());
+        assert!(VowelClass::BackUnrounded.is_back());
+        assert!(!VowelClass::BackUnrounded.is_rounded());
+
+        assert!(!VowelClass::BackRounded.is_front());
+        assert!(VowelClass::BackRounded.is_back());
+        assert!(VowelClass::BackRounded.is_rounded());
+    }
+
+    #[test]
     fn test_last_vowel_extraction() {
         assert_eq!(get_last_vowel_class("kitap"), Some(VowelClass::BackUnrounded));
         assert_eq!(get_last_vowel_class("ev"), Some(VowelClass::FrontUnrounded));

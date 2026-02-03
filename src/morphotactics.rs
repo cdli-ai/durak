@@ -113,6 +113,24 @@ impl MorphotacticClassifier {
         nominal_map.insert("u", NominalSlot::Case);
         nominal_map.insert("ü", NominalSlot::Case);
 
+        // Nominal Copula (after all other suffixes)
+        nominal_map.insert("dır", NominalSlot::Copula);
+        nominal_map.insert("dir", NominalSlot::Copula);
+        nominal_map.insert("dur", NominalSlot::Copula);
+        nominal_map.insert("dür", NominalSlot::Copula);
+        nominal_map.insert("tır", NominalSlot::Copula);
+        nominal_map.insert("tir", NominalSlot::Copula);
+        nominal_map.insert("tur", NominalSlot::Copula);
+        nominal_map.insert("tür", NominalSlot::Copula);
+        nominal_map.insert("yım", NominalSlot::Copula);
+        nominal_map.insert("yim", NominalSlot::Copula);
+        nominal_map.insert("yum", NominalSlot::Copula);
+        nominal_map.insert("yüm", NominalSlot::Copula);
+        nominal_map.insert("yız", NominalSlot::Copula);
+        nominal_map.insert("yiz", NominalSlot::Copula);
+        nominal_map.insert("yuz", NominalSlot::Copula);
+        nominal_map.insert("yüz", NominalSlot::Copula);
+
         // Verbal Voice
         verbal_map.insert("ıl", VerbalSlot::Voice);
         verbal_map.insert("il", VerbalSlot::Voice);
@@ -157,6 +175,16 @@ impl MorphotacticClassifier {
         verbal_map.insert("niz", VerbalSlot::Person);
         verbal_map.insert("nuz", VerbalSlot::Person);
         verbal_map.insert("nüz", VerbalSlot::Person);
+
+        // Verbal Copula (after all other suffixes)
+        verbal_map.insert("dır", VerbalSlot::Copula);
+        verbal_map.insert("dir", VerbalSlot::Copula);
+        verbal_map.insert("dur", VerbalSlot::Copula);
+        verbal_map.insert("dür", VerbalSlot::Copula);
+        verbal_map.insert("tır", VerbalSlot::Copula);
+        verbal_map.insert("tir", VerbalSlot::Copula);
+        verbal_map.insert("tur", VerbalSlot::Copula);
+        verbal_map.insert("tür", VerbalSlot::Copula);
 
         Self {
             nominal_map,
@@ -435,5 +463,102 @@ mod tests {
         // Invalid Turkish morphology
         assert!(!classifier.validate_sequence(&["da", "lar"])); // *kitapdalar
         assert!(!classifier.validate_sequence(&["m", "di"])); // *gelimdi (nonsense)
+    }
+
+    #[test]
+    fn test_nominal_copula_classification() {
+        let classifier = MorphotacticClassifier::new();
+
+        // Nominal-only copula suffixes (y- initial) should be classified as Nominal(Copula)
+        assert!(matches!(
+            classifier.classify("yım"),
+            SuffixSlot::Nominal(NominalSlot::Copula)
+        ));
+        assert!(matches!(
+            classifier.classify("yim"),
+            SuffixSlot::Nominal(NominalSlot::Copula)
+        ));
+        assert!(matches!(
+            classifier.classify("yum"),
+            SuffixSlot::Nominal(NominalSlot::Copula)
+        ));
+        assert!(matches!(
+            classifier.classify("yüm"),
+            SuffixSlot::Nominal(NominalSlot::Copula)
+        ));
+        assert!(matches!(
+            classifier.classify("yız"),
+            SuffixSlot::Nominal(NominalSlot::Copula)
+        ));
+        assert!(matches!(
+            classifier.classify("yiz"),
+            SuffixSlot::Nominal(NominalSlot::Copula)
+        ));
+
+        // d- and t- initial copula suffixes are in both nominal and verbal maps
+        // Due to precedence in classify(), they return Verbal(Copula)
+        // However, they validate correctly in nominal contexts via try_validate_as_nominal()
+    }
+
+    #[test]
+    fn test_verbal_copula_classification() {
+        let classifier = MorphotacticClassifier::new();
+
+        // Verbal copula suffixes should be classified as Verbal(Copula)
+        // Note: These are ambiguous with nominal, so classify() returns Verbal due to precedence
+        assert!(matches!(
+            classifier.classify("dır"),
+            SuffixSlot::Verbal(VerbalSlot::Copula)
+        ));
+        assert!(matches!(
+            classifier.classify("dir"),
+            SuffixSlot::Verbal(VerbalSlot::Copula)
+        ));
+    }
+
+    #[test]
+    fn test_valid_nominal_copula_sequences() {
+        let classifier = MorphotacticClassifier::new();
+
+        // Copula comes after all other nominal suffixes
+        // kitap+lar+ım+da+dır (Plural → Possessive → Case → Copula)
+        assert!(classifier.validate_sequence(&["lar", "ım", "da", "dır"]));
+
+        // ev+im+de+dir (Possessive → Case → Copula)
+        assert!(classifier.validate_sequence(&["im", "de", "dir"]));
+
+        // öğrenci+yim (root + copula)
+        assert!(classifier.validate_sequence(&["yim"]));
+
+        // doktor+sunuz (root + copula)
+        assert!(classifier.validate_sequence(&["sunuz"]));
+    }
+
+    #[test]
+    fn test_valid_verbal_copula_sequences() {
+        let classifier = MorphotacticClassifier::new();
+
+        // Copula comes after all other verbal suffixes
+        // gel+di+m+dir (Tense → Person → Copula)
+        assert!(classifier.validate_sequence(&["di", "m", "dir"]));
+
+        // gel+iyor+du (Tense/Aspect → Tense)
+        assert!(classifier.validate_sequence(&["yor", "du"]));
+
+        // gel+me+li+dir (Negation → Necessity → Copula)
+        // Note: -li is not in our suffix list, so this won't validate
+        // But copula after person should work
+    }
+
+    #[test]
+    fn test_invalid_copula_sequences() {
+        let classifier = MorphotacticClassifier::new();
+
+        // Copula cannot come before other suffixes
+        // *kitap+dır+lar (Copula before Plural - INVALID)
+        assert!(!classifier.validate_sequence(&["dır", "lar"]));
+
+        // *ev+dir+im+de (Copula before Possessive - INVALID)
+        assert!(!classifier.validate_sequence(&["dir", "im", "de"]));
     }
 }
