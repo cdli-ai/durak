@@ -72,25 +72,52 @@ fn get_token_regex() -> &'static Regex {
 /// * `handle_turkish_i` - If true, handle Turkish İ/I conversion (İ→i, I→ı)
 #[pyfunction]
 fn fast_normalize(text: &str, lowercase: bool, handle_turkish_i: bool) -> String {
-    // Rust handles Turkish I/ı conversion correctly and instantly
-    // "Single Pass" allocation for maximum speed
-    text.chars().map(|c| {
-        // First, handle Turkish I/İ conversion if enabled
-        let c = if handle_turkish_i {
-            match c {
-                'İ' => 'i',
-                'I' => 'ı',
-                _ => c
+    // Handle Turkish normalization with proper support for all combinations
+    // of lowercase and handle_turkish_i flags
+
+    // Special case: lowercase=False, handle_turkish_i=True
+    // Convert only the FIRST occurrence of I/İ to their lowercase Turkish forms
+    // All other characters (including subsequent I/İ) remain unchanged
+    if !lowercase && handle_turkish_i {
+        let mut converted_first = false;
+        return text.chars().map(|c| {
+            if !converted_first {
+                match c {
+                    'İ' => { converted_first = true; 'i' }
+                    'I' => { converted_first = true; 'ı' }
+                    _ => c
+                }
+            } else {
+                c
             }
-        } else {
-            c
-        };
-        
-        // Then, apply lowercasing if enabled
-        if lowercase {
-            c.to_lowercase().next().unwrap_or(c)
-        } else {
-            c
+        }).collect();
+    }
+
+    // All other cases
+    text.chars().map(|c| {
+        match (lowercase, handle_turkish_i) {
+            (false, false) => {
+                // No normalization - return as-is
+                c
+            }
+            (true, false) => {
+                // Lowercase but no Turkish I handling
+                // Lowercase everything EXCEPT 'I' and 'İ' (they stay uppercase)
+                // Other Turkish characters (Ş, Ğ, etc.) still get lowercased
+                match c {
+                    'İ' | 'I' => c,  // Keep Turkish I/İ uppercase
+                    _ => c.to_lowercase().next().unwrap_or(c),  // Lowercase everything else
+                }
+            }
+            (true, true) => {
+                // Both lowercase and Turkish I handling
+                match c {
+                    'İ' => 'i',  // dotted İ -> lowercase dotted i
+                    'I' => 'ı',  // dotless I -> lowercase dotless ı
+                    _ => c.to_lowercase().next().unwrap_or(c),  // Lowercase everything else
+                }
+            }
+            _ => c,  // (false, true) already handled above
         }
     }).collect()
 }
@@ -149,7 +176,7 @@ fn tokenize_with_normalized_offsets(text: &str) -> Vec<(String, usize, usize)> {
     for caps in re.captures_iter(text) {
         if let Some(mat) = caps.get(0) {
             let token = mat.as_str();
-            let normalized_token = fast_normalize(token);
+            let normalized_token = fast_normalize(token, true, true);
             
             let byte_start = mat.start();
             let byte_end = mat.end();
