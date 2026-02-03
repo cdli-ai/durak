@@ -24,6 +24,16 @@ from durak import (
     process_text,
     tokenize,
 )
+from durak.cleaning import (
+    collapse_whitespace,
+    normalize_case,
+    normalize_unicode,
+    remove_mentions_hashtags,
+    remove_repeated_chars,
+    remove_urls,
+    strip_html,
+)
+from functools import partial
 
 
 @click.group()
@@ -77,7 +87,22 @@ def process(input_file: str, output: str | None, **kwargs: Any) -> None:
 
     # Clean text with options
     emoji_mode = "keep" if kwargs["keep_emoji"] else "remove"
-    cleaned = clean_text(text, emoji_mode=emoji_mode)
+
+    # Build cleaning steps based on lowercase option
+    if kwargs["lowercase"]:
+        # Use default steps (includes lowercase)
+        cleaned = clean_text(text, emoji_mode=emoji_mode)
+    else:
+        # Build custom steps without lowercase
+        steps_without_lowercase = (
+            normalize_unicode,
+            strip_html,
+            remove_urls,
+            remove_mentions_hashtags,
+            partial(remove_repeated_chars, max_repeats=2),
+            collapse_whitespace,
+        )
+        cleaned = clean_text(text, steps=steps_without_lowercase, emoji_mode=emoji_mode)
 
     # Tokenize
     tokens = tokenize(cleaned)
