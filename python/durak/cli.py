@@ -278,7 +278,7 @@ def tokenize_cmd(
     INPUT_FILE: Path to input text file (or '-' for stdin)
 
     Example:
-        durak tokenize --remove-stopwords --rejoin-suffixes input.txt
+        durak tokenize --stopwords --suffixes input.txt
         echo "Merhaba dünya" | durak tokenize --format json
     """
     # Read input
